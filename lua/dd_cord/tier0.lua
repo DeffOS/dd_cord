@@ -1,3 +1,5 @@
+local tableInsert = table.insert
+
 function includeCL(file) file = file .. ".lua" if SERVER then AddCSLuaFile(file) else include(file) end end
 function includeSV(file) file = file .. ".lua" if SERVER then include(file) end end
 function includeSH(file) file = file .. ".lua" if SERVER then AddCSLuaFile(file) end include(file) end
@@ -11,40 +13,29 @@ do
     local _RealmColor = SERVER and Color(136, 221, 255) or Color(255, 221, 102)
     local _RealmTag = SERVER and "SERVER" or "CLIENT"
     local _uCol = Color(0,0,0)
+    local _nCol = Color(220,220,220)
+    local _wCol = Color(220,64,64)
     local _eCol = Color(255,64,255)
-    // DD_CORD:CreateMessanger("DD_TEST",{tagcolor = Color(79,255,25),realmed = false},Color(160,160,0),Color(0,0,0))
-    function DD_CORD:CreateMessanger(name,settings,...)
-        table.Inherit(settings,_Settings)
-        local tagcolor = settings["tagcolor"]
-        local colors = {...}
-        if settings["realmed"] then
-            return function(...)
-                local args = {...}
-                for _,var in ipairs(args) do
-                    if isnumber(var) then
-                        args[_] = colors[var] or _eCol
-                    else
-                        args[_] = args[_] .. " "
-                    end
+    function DD_CORD.CreateMessangers(name,color,namespace)
+        local msg,war,err =
+        function(...)
+            MsgC(_uCol,"[",color,name,_uCol,"] : ",_RealmColor,...)
+        end,
+        function(...)
+            MsgC(_wCol,"[",color,name,_wCol,"] : ",_RealmColor,_RealmTag,_wCol,...)
+        end,
+        function(halt,...)
+            if halt then
+                local res = "["..name.."] : "
+                for _,arg in ipairs({...}) do
+                    res = res.." "..tostring(arg)
                 end
-                table.insert(args,_RealmColor) // Set Realm color for "developer 1" top-left log
-                table.insert(args,"\n")
-                MsgC(_uCol,"[",_RealmColor,_RealmTag,_uCol,"] [",tagcolor,name,_uCol,"]: ",unpack(args))
-            end
-        else
-            return function(...)
-                local args = {...}
-                for _,var in ipairs(args) do
-                    if isnumber(var) then
-                        args[_] = colors[var] or _eCol
-                    else
-                        args[_] = args[_] .. " "
-                    end
-                end
-                table.insert(args,"\n")
-                MsgC(_uCol,"[",tagcolor,name,_uCol,"]: ",unpack(args))
+            else
+                ErrorNoHalt("["..name.."] : ",...)
             end
         end
+        if istable(namespace) then namespace.Message=msg namespace.Warning=war namespace.Error=err end
+        return msg,war,err
     end
 end
 
@@ -80,9 +71,59 @@ do
         depthCrawler(matrix,1)
         return matrix,indextable
     end
+    do local function FinalizeKeyValues(values)
+            local final = {}
+            local collapsekeys = {}
+            for _,pack in ipairs(values) do
+                local key = pack["Key"]
+                local value = pack["Value"]
+                value = istable(value) and FinalizeKeyValues(value) or value
+                local finalvalue = final[key]
+                if finalvalue then
+                    if collapsekeys[key] then
+                        tableInsert(finalvalue,value)
+                    else
+                        collapsekeys[key] = true
+                        final[key] = {finalvalue,value}
+                    end
+                else
+                    final[key] = value
+                end
+            end
+            return final
+        end
+        DD_CORD.FinalizeKeyValues = FinalizeKeyValues
+    end
 end
 
 do
+    function DD_CORD.CreateMetatable() local t={} t["__index"]=t return t end
+    DD_CORD.METAS = DD_CORD.METAS or {}
+    do
+    	local Metas = DD_CORD.METAS
+    	function DD_CORD.CreateClassMetatable(name)
+    		name = string.upper(name)
+    		if Metas[name] then return Metas[name] end
+    		local newmeta = DD_CORD.CreateMetatable()
+    		Metas[name] = newmeta
+    		return newmeta
+    	end
+        function DD_CORD.CopyClassMetatable(base,name)
+    		base,name = string.upper(base),string.upper(name)
+    		if Metas[name] then return Metas[name] end
+            if !Matas[base] then error("Cant copy non-existant class metatable [",tostring(base),"] for [",tostring(name),"]\n") return end
+    		local newmeta = DD_CORD.CreateMetatable()
+            for ind,var in pairs(Matas[base]) do
+                newmeta[ind] = var
+            end
+    		Metas[name] = newmeta
+    		return newmeta
+    	end
+    	function DD_CORD.GetClassMetatable(name)
+    		name = string.upper(name)
+    		return Metas[name]
+    	end
+    end
     function DD_CORD:BuildEnviroment(namespace,customspace)
         local env = {}
         for _,name in ipairs(namespace) do
