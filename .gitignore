@@ -1,0 +1,4 @@
+*.code-workspace
+.vscode/
+.archive/
+lua/entities/
