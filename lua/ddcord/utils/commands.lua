@@ -25,10 +25,10 @@ do
 end
 
 if SERVER then
-    concommand.Add("require",function(ply,cmd,args)
-        if !allowed(ply) then return end
-        require(args[1])
-    end)
+	concommand.Add("require",function(ply,cmd,args)
+		if !allowed(ply) then return end
+		require(args[1])
+	end)
 
 	concommand.Add("print",function(ply,cmd,args,argstr)
 		if !allowed(ply) then return end
