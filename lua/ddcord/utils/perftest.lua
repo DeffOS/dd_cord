@@ -7,7 +7,9 @@ local _time = 0
 local _started = false
 
 function Start()
-	assert(!_started,"DDCORD - Preftest already started!")
+	if started then
+		ErrorNoHalt("DDCORD - Preftest already started,continuing...\n")
+	end
 	_started = true
 	_time = SysTime()
 end
@@ -15,7 +17,7 @@ end
 function Spew(str)
 	diff = SysTime() - _time
 	_time = SysTime()
-	print(str..":",diff)
+	print(str .. ":", diff)
 end
 
 function End(spew)
