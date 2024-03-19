@@ -1,9 +1,13 @@
+AddCSLuaFile()
+
 local band = bit.band
 local insert = table.insert
 local istable = istable
 local ipairs = ipairs
 local ScrW = ScrW
 local ScrH = ScrH
+local hook = hook
+local SERVER = SERVER
 
 module("ddcord")
 

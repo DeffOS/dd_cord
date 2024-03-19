@@ -1,3 +1,5 @@
+AddCSLuaFile()
+
 AddCSLuaFile("vector.lua")
 include("vector.lua")
 

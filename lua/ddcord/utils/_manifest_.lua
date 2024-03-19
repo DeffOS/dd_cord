@@ -1,3 +1,5 @@
+AddCSLuaFile()
+
 AddCSLuaFile("flowcontrol.lua")
 include("flowcontrol.lua")
 
